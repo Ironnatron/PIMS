@@ -5,6 +5,9 @@ management, suppliers, batches, expiry tracking and auditable stock adjustments.
 Purchase/sales orders, invoicing, tax calculations and regulatory workflows are not
 implemented in this release.
 
+For a simple explanation of how each feature works in code, see
+[FEATURE_CODE_GUIDE.md](FEATURE_CODE_GUIDE.md).
+
 ## Features
 
 - Staff login; superusers manage accounts, groups and permissions in the PIMS
