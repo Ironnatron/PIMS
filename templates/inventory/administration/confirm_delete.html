@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel form-panel"><p class="eyebrow">ADMINISTRATION</p><h1>Delete {{ kind }}?</h1><p>Delete <strong>{{ object }}</strong>? This action cannot be undone.</p>
+{% if kind == "user" %}<p>Users with stock history cannot be deleted. Deactivate them instead.</p>{% else %}<p>Users will remain, but will lose permissions granted by this group.</p>{% endif %}
+<form method="post">{% csrf_token %}<div class="actions"><button class="button danger">Delete {{ kind }}</button><a class="button secondary" href="{% url cancel_url %}">Cancel</a></div></form></section>
+{% endblock %}

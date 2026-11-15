@@ -7,7 +7,8 @@ implemented in this release.
 
 ## Features
 
-- Staff login; administrators create and deactivate accounts using Django admin.
+- Staff login; superusers manage accounts, groups and permissions in the PIMS
+  Administration screen.
 - Medicine and other-product catalog: SKU, generic name, manufacturer, strength,
   dosage form, counting unit, prescription flag and reorder level.
 - Supplier contacts, address, tax/GST ID, drug license number and active status.
@@ -57,14 +58,24 @@ only and is not automatically loaded.
 4. Record negative adjustments for disposal, damage or returns with specific reasons.
 5. Review the low-stock and expiry watchlists regularly.
 
-At `/admin/`, a superuser can create users. Enable **Active** and **Staff status**
-for inventory access, but do not grant **Superuser status** to ordinary staff.
-All active staff have full inventory-management access in this release. Django admin
-permissions still control administration pages. Batch and adjustment admin screens
-are read-only; use the application to receive and adjust stock.
+Sign in as a superuser and select **Administration** in the sidebar. Create or edit
+users, reset passwords, and create, edit or delete groups and their permissions.
+Enable **Active** and **Staff status** for inventory access. Grant **Superuser
+status** only to trusted administrators: superusers can manage every account and
+group, including granting other users administrator access.
 
-Staff can change their own passwords. Administrators reset forgotten passwords in
-Django admin. No email/password-reset service is configured.
+All active staff have full inventory-management access in this release, irrespective
+of individual or group permissions. Those permissions control access in the retained
+Django admin (`/admin/`); they do not restrict PIMS inventory screens or the custom
+administration screen (which is superuser-only). Users with stock adjustment history
+cannot be deleted; deactivate them instead. The custom screen prevents self-deletion
+and removal of your own administrator access, and records administration changes in
+the Django admin log. Django admin remains an independent fallback and can bypass
+these custom-screen protections. Batch and adjustment admin screens are read-only.
+
+Staff can change their own passwords; superusers can reset forgotten passwords in
+Administration. Share temporary passwords securely. No email/password-reset service
+is configured.
 
 ## Deploy on Render Free
 

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>Groups &amp; permissions</h1><p class="muted">Manage permission sets that can be assigned to users.</p></div><div class="actions"><a class="button secondary" href="{% url 'administration_users' %}">Users</a><a class="button" href="{% url 'administration_group_add' %}">+ Add group</a></div></div>
+<div class="notice">Groups and individual permissions apply to Django admin only. All active staff retain full PIMS inventory access.</div>
+<section class="panel"><form method="get" class="filters"><input type="search" name="q" aria-label="Search groups" placeholder="Search group name..." value="{{ request.GET.q }}"><button class="button secondary">Search</button><a href="{% url 'administration_groups' %}">Reset</a></form>
+<div class="table-wrap"><table><thead><tr><th>Group</th><th>Permissions</th><th>Actions</th></tr></thead><tbody>
+{% for group in groups %}<tr><td>{{ group.name }}</td><td>{{ group.permissions.all|length }}</td><td><div class="actions"><a href="{% url 'administration_group_edit' group.pk %}">Edit</a><a href="{% url 'administration_group_delete' group.pk %}">Delete</a></div></td></tr>{% empty %}<tr><td colspan="3" class="empty">No groups found.</td></tr>{% endfor %}
+</tbody></table></div>{% include "inventory/pagination.html" %}</section>
+{% endblock %}

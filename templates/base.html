@@ -22,7 +22,7 @@
       <a href="{% url 'product_list' %}" {% if 'product' in request.resolver_match.url_name %}class="selected"{% endif %}>Medicines &amp; products</a>
       <a href="{% url 'supplier_list' %}" {% if 'supplier' in request.resolver_match.url_name %}class="selected"{% endif %}>Suppliers</a>
       <a href="{% url 'batch_list' %}" {% if 'batch' in request.resolver_match.url_name %}class="selected"{% endif %}>Batches &amp; stock</a>
-      {% if user.is_superuser %}<a href="{% url 'admin:index' %}">Administration</a>{% endif %}
+      {% if user.is_superuser %}<a href="{% url 'administration_users' %}" {% if 'administration' in request.resolver_match.url_name %}class="selected"{% endif %}>Administration</a>{% endif %}
       <div class="sidebar-note">Inventory, clearly.<br><small>Orders are planned for a later release.</small></div>
     </nav>
     {% endif %}

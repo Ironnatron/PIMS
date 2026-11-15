@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>{{ title }}</h1></div></div>
+{% if note %}<div class="notice">{{ note }}</div>{% endif %}
+<div class="notice">Active staff can manage all inventory. Groups and individual permissions affect Django admin only. Grant superuser access only to trusted administrators.</div>
+<section class="panel form-panel"><form method="post" novalidate>
+{% csrf_token %}{{ form.non_field_errors }}
+<div class="form-grid">{% for field in form %}<div class="field {% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">{{ field.label_tag }}{{ field }}{% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}{{ field.errors }}</div>{% endfor %}</div>
+<div class="form-actions"><button class="button">Save</button><a class="button secondary" href="{% url cancel_url %}">Cancel</a></div>
+</form></section>
+{% endblock %}
