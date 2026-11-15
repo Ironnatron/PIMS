@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">INVENTORY AT A GLANCE</p><h1>Overview</h1><p class="muted">Keep your catalog organized and your stock in sight.</p></div><a class="button" href="{% url 'batch_add' %}">+ Receive a new batch</a></div>
+<div class="stats">
+  <a class="stat" href="{% url 'product_list' %}?status=active"><span>Active products</span><strong>{{ product_count }}</strong><small>Medicines &amp; other products</small></a>
+  <a class="stat" href="{% url 'supplier_list' %}"><span>Active suppliers</span><strong>{{ supplier_count }}</strong><small>Your supply network</small></a>
+  <a class="stat warning" href="{% url 'product_list' %}?stock=low"><span>Low stock</span><strong>{{ low_count }}</strong><small>At or below reorder level</small></a>
+  <a class="stat warning" href="{% url 'batch_list' %}?status=expiring"><span>Expiring soon</span><strong>{{ expiring_count }}</strong><small>Stocked batches within 90 days</small></a>
+</div>
+{% if expired_count %}<div class="notice error"><a href="{% url 'batch_list' %}?status=expired">{{ expired_count }} expired batch{{ expired_count|pluralize }} with remaining stock.</a> Review and record disposal adjustments.</div>{% endif %}
+<div class="two-column">
+  <section class="panel"><div class="section-heading"><h2>Reorder watchlist</h2><a href="{% url 'product_list' %}?stock=low">View all</a></div><p class="muted small">Usable stock excludes expired batches and inactive suppliers.</p>
+  <div class="table-wrap"><table><thead><tr><th>Product</th><th>Stock</th><th>Reorder at</th></tr></thead><tbody>
+  {% for product in low_products %}<tr><td><a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a><small>{{ product.sku }}</small></td><td><span class="badge amber">{{ product.stock }} {{ product.unit }}</span></td><td>{{ product.reorder_level }}</td></tr>{% empty %}<tr><td colspan="3" class="empty">No products need reordering.</td></tr>{% endfor %}
+  </tbody></table></div></section>
+  <section class="panel"><div class="section-heading"><h2>Expiry watchlist</h2><a href="{% url 'batch_list' %}?status=expiring">View all</a></div>
+  <div class="table-wrap"><table><thead><tr><th>Medicine / product</th><th>Batch</th><th>Expiry</th></tr></thead><tbody>
+  {% for batch in expiring_batches %}<tr><td>{{ batch.product.name }}<small>{{ batch.quantity }} {{ batch.product.unit }}</small></td><td><a href="{% url 'batch_adjust' batch.pk %}">{{ batch.batch_number }}</a></td><td>{{ batch.expiry_date|date:"d M Y" }}</td></tr>{% empty %}<tr><td colspan="3" class="empty">No stocked batches expiring within 90 days.</td></tr>{% endfor %}
+  </tbody></table></div></section>
+</div>
+<section class="panel"><div class="section-heading"><h2>Recent stock activity</h2><a href="{% url 'batch_list' %}">Manage stock</a></div>
+<div class="table-wrap"><table><thead><tr><th>Product / batch</th><th>Change</th><th>Balance</th><th>Reason</th><th>Staff / time</th></tr></thead><tbody>
+{% for entry in adjustments %}<tr><td><a href="{% url 'batch_adjust' entry.batch_id %}">{{ entry.batch.product.name }}</a><small>{{ entry.batch.batch_number }}</small></td><td>{% if entry.change > 0 %}+{% endif %}{{ entry.change }}</td><td>{{ entry.resulting_quantity }}</td><td>{{ entry.reason }}</td><td>{{ entry.user.username }}<small>{{ entry.created_at|date:"d M Y H:i" }}</small></td></tr>{% empty %}<tr><td colspan="5" class="empty">No stock activity yet. Add a product, supplier and batch to get started.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

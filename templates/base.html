@@ -1,0 +1,36 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}PIMS | Pharmaceutical Inventory{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'inventory/app.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{% url 'dashboard' %}"><span class="brand-icon">+</span> PIMS <small>Distributor workspace</small></a>
+    {% if user.is_authenticated %}
+    <div class="account"><span>{{ user.username }}</span><a href="{% url 'password_change' %}">Password</a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button">Sign out</button></form></div>
+    {% endif %}
+  </header>
+  <div class="layout">
+    {% if user.is_authenticated and user.is_staff %}
+    <nav class="sidebar" aria-label="Main navigation">
+      <p class="nav-label">MANAGEMENT</p>
+      <a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="selected" aria-current="page"{% endif %}>Overview</a>
+      <a href="{% url 'product_list' %}" {% if 'product' in request.resolver_match.url_name %}class="selected"{% endif %}>Medicines &amp; products</a>
+      <a href="{% url 'supplier_list' %}" {% if 'supplier' in request.resolver_match.url_name %}class="selected"{% endif %}>Suppliers</a>
+      <a href="{% url 'batch_list' %}" {% if 'batch' in request.resolver_match.url_name %}class="selected"{% endif %}>Batches &amp; stock</a>
+      {% if user.is_superuser %}<a href="{% url 'admin:index' %}">Administration</a>{% endif %}
+      <div class="sidebar-note">Inventory, clearly.<br><small>Orders are planned for a later release.</small></div>
+    </nav>
+    {% endif %}
+    <main id="main">
+      {% for message in messages %}<div role="status" class="notice {{ message.tags }}">{{ message }}</div>{% endfor %}
+      {% block content %}{% endblock %}
+      <footer>PIMS &middot; Pharmaceutical distributor inventory</footer>
+    </main>
+  </div>
+</body>
+</html>

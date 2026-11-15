@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">{{ product.sku }}</p><h1>{{ product.name }}</h1><p class="muted">{{ product.get_kind_display }} &middot; {% if product.is_active %}Active{% else %}Inactive - do not distribute{% endif %}</p></div><div class="actions"><a class="button secondary" href="{% url 'product_edit' product.pk %}">Edit product</a><a class="button" href="{% url 'batch_add' %}?product={{ product.pk }}">+ Add batch</a></div></div>
+<section class="panel"><dl class="details">
+<div><dt>Generic name</dt><dd>{{ product.generic_name|default:"-" }}</dd></div><div><dt>Manufacturer</dt><dd>{{ product.manufacturer|default:"-" }}</dd></div><div><dt>Strength / dosage form</dt><dd>{{ product.strength|default:"-" }} / {{ product.dosage_form|default:"-" }}</dd></div><div><dt>Prescription required</dt><dd>{{ product.requires_prescription|yesno:"Yes,No" }}</dd></div><div><dt>Usable stock</dt><dd>{{ product.stock }} {{ product.unit }}</dd></div><div><dt>Reorder level</dt><dd>{{ product.reorder_level }} {{ product.unit }}</dd></div>
+</dl><p>{{ product.description|linebreaksbr }}</p><a class="danger-link" href="{% url 'product_delete' product.pk %}">Delete unused product</a></section>
+<section class="panel"><h2>Batch stock</h2><div class="table-wrap"><table><thead><tr><th>Batch</th><th>Supplier</th><th>Expiry</th><th>Physical stock</th><th>Actions</th></tr></thead><tbody>
+{% for batch in batches %}<tr><td>{{ batch.batch_number }}</td><td><a href="{% url 'supplier_detail' batch.supplier_id %}">{{ batch.supplier.name }}</a></td><td>{% if batch.expiry_date < today %}<span class="badge red">Expired</span>{% endif %} {{ batch.expiry_date|date:"d M Y" }}</td><td>{{ batch.quantity }} {{ product.unit }}</td><td><a href="{% url 'batch_adjust' batch.pk %}">Adjust stock / history</a></td></tr>{% empty %}<tr><td colspan="5" class="empty">No batches yet.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

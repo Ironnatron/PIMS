@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Sign in | PIMS{% endblock %}
+{% block content %}
+<section class="login-card panel">
+  <p class="eyebrow">YOUR DISTRIBUTOR WORKSPACE</p>
+  <h1>Welcome to PIMS</h1>
+  <p class="muted">Sign in to manage medicines, suppliers and stock.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    <button class="button full">Sign in</button>
+  </form>
+  <p class="muted small">Need access or a password reset? Contact your administrator.</p>
+</section>
+{% endblock %}

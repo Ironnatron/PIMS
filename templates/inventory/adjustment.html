@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">STOCK CONTROL</p><h1>{{ batch.product.name }}</h1><p class="muted">Batch {{ batch.batch_number }} &middot; {{ batch.supplier.name }} &middot; Expires {{ batch.expiry_date|date:"d M Y" }}</p></div><div class="balance"><span>Current physical stock</span><strong>{{ batch.quantity }} <small>{{ batch.product.unit }}</small></strong></div></div>
+<div class="notice">Expired stock cannot be received. Negative adjustments can record disposal or returns. Each change is permanently recorded.</div>
+<section class="panel form-panel"><h2>Adjust stock</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button class="button">Record adjustment</button></form></section>
+<section class="panel"><h2>Stock history <small class="muted">(latest 50 entries)</small></h2><div class="table-wrap"><table><thead><tr><th>When</th><th>Change</th><th>Balance after</th><th>Reason</th><th>Staff</th></tr></thead><tbody>
+{% for entry in adjustments %}<tr><td>{{ entry.created_at|date:"d M Y H:i" }}</td><td>{% if entry.change > 0 %}+{% endif %}{{ entry.change }}</td><td>{{ entry.resulting_quantity }}</td><td>{{ entry.reason }}</td><td>{{ entry.user.username }}</td></tr>{% empty %}<tr><td colspan="5" class="empty">No adjustments yet. Record your initial receipt above.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

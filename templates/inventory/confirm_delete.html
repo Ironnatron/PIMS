@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block content %}<section class="panel form-panel"><h1>Delete {{ object }}?</h1><p>This is permanent. Records with batch history cannot be deleted; mark them inactive instead.</p><form method="post">{% csrf_token %}<div class="actions"><button class="button danger">Delete record</button><a class="button secondary" href="{% url 'dashboard' %}">Cancel</a></div></form></section>{% endblock %}
