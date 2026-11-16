@@ -281,3 +281,80 @@ class InventoryTests(TestCase):
             user.refresh_from_db()
             self.assertTrue(user.is_superuser)
             self.assertEqual(user.password, original)
+
+    @patch(
+        "inventory.management.commands.seed_demo_data.Command._has_interactive_terminal",
+        return_value=True,
+    )
+    @patch(
+        "inventory.management.commands.seed_demo_data.getpass.getpass",
+        side_effect=["Demo-seed-password!582", "Demo-seed-password!582"],
+    )
+    def test_demo_seed_creates_staff_and_inventory_idempotently(self, prompt, is_interactive):
+        output = StringIO()
+        call_command("seed_demo_data", stdout=output)
+
+        User = get_user_model()
+        demo_users = list(User.objects.filter(username__startswith="demo_operator_"))
+        self.assertEqual(len(demo_users), 2)
+        self.assertTrue(all(user.is_active and user.is_staff for user in demo_users))
+        self.assertTrue(all(not user.is_superuser for user in demo_users))
+        self.assertTrue(all(user.check_password("Demo-seed-password!582") for user in demo_users))
+        self.assertEqual(Product.objects.filter(sku__startswith="DEMO-").count(), 4)
+        self.assertEqual(Batch.objects.filter(batch_number__startswith="DEMO-").count(), 4)
+        self.assertEqual(
+            StockAdjustment.objects.filter(
+                batch__batch_number__startswith="DEMO-"
+            ).count(),
+            4,
+        )
+        self.assertIn("4 products and 4 batches created", output.getvalue())
+
+        passwords = {user.username: user.password for user in demo_users}
+        call_command("seed_demo_data", stdout=StringIO())
+        self.assertEqual(Product.objects.filter(sku__startswith="DEMO-").count(), 4)
+        self.assertEqual(Batch.objects.filter(batch_number__startswith="DEMO-").count(), 4)
+        self.assertEqual(
+            StockAdjustment.objects.filter(
+                batch__batch_number__startswith="DEMO-"
+            ).count(),
+            4,
+        )
+        for user in demo_users:
+            user.refresh_from_db()
+            self.assertEqual(user.password, passwords[user.username])
+        self.assertEqual(prompt.call_count, 2)
+
+    @patch(
+        "inventory.management.commands.seed_demo_data.Command._has_interactive_terminal",
+        return_value=True,
+    )
+    @patch(
+        "inventory.management.commands.seed_demo_data.getpass.getpass",
+        side_effect=["Demo-seed-password!582", "Not-the-same-password!582"],
+    )
+    def test_demo_seed_rejects_mismatched_password_before_creating_records(
+        self, prompt, is_interactive
+    ):
+        from django.core.management.base import CommandError
+
+        with self.assertRaisesMessage(CommandError, "passwords did not match"):
+            call_command("seed_demo_data", stdout=StringIO())
+        self.assertFalse(
+            get_user_model().objects.filter(username__startswith="demo_operator_").exists()
+        )
+        self.assertFalse(Product.objects.filter(sku__startswith="DEMO-").exists())
+
+    @patch(
+        "inventory.management.commands.seed_demo_data.Command._has_interactive_terminal",
+        return_value=False,
+    )
+    def test_demo_seed_requires_a_terminal_before_creating_records(self, is_interactive):
+        from django.core.management.base import CommandError
+
+        with self.assertRaisesMessage(CommandError, "A terminal is required"):
+            call_command("seed_demo_data", stdout=StringIO())
+        self.assertFalse(
+            get_user_model().objects.filter(username__startswith="demo_operator_").exists()
+        )
+        self.assertFalse(Product.objects.filter(sku__startswith="DEMO-").exists())

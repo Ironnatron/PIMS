@@ -7,6 +7,7 @@ implemented in this release.
 
 For a simple explanation of how each feature works in code, see
 [FEATURE_CODE_GUIDE.md](FEATURE_CODE_GUIDE.md).
+For day-to-day instructions for staff, see the [PIMS user guide](USER_GUIDE.md).
 
 ## Features
 
@@ -51,6 +52,22 @@ Visit http://127.0.0.1:8000 and sign in with the account you created. Local deve
 uses SQLite. No demo accounts or preconfigured passwords are included.
 Environment variables must be set in each new shell; `.env.example` is reference
 only and is not automatically loaded.
+
+### Load demonstration data
+
+For a demo or an empty development database, run:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py seed_demo_data
+```
+
+The command prompts for and confirms a password for new accounts; newly created
+demo accounts share it. Sign in as `demo_operator_1` or `demo_operator_2`. They are
+active staff accounts with full inventory access, but are not administrators.
+Choose a password that is not used elsewhere. The command is safe to rerun: it
+does not reset existing demo passwords or overwrite existing demo records, and it
+prints only a summary. Use this only in a demo/development database, not alongside
+real inventory.
 
 ### First-use workflow
 
