@@ -141,6 +141,28 @@ and optional administrator bootstrap run in the start command before Gunicorn.
 Use a single service instance for this setup. Do not share one database between
 independently migrating deployments.
 
+#### Optional demo accounts and inventory
+
+The demo seed is disabled by default. To seed the Render database, add these
+temporary environment variables in the Render dashboard:
+
+- `SEED_DEMO_DATA=true`
+- `DEMO_PASSWORD`: a strong, unique password that passes the application's password
+  checks. Both newly created demo accounts use this password.
+
+Save the environment changes and wait for the service to restart. In the Render
+logs, confirm that the demo seed reports two users, two suppliers, four products
+and four batches created. Sign in as `demo_operator_1` or `demo_operator_2` with
+the password you set. These are active staff accounts with full inventory access;
+they are not superusers.
+
+After confirming the seed completed, remove **both** `SEED_DEMO_DATA` and
+`DEMO_PASSWORD` from Render's Environment settings and save. This prevents the
+demo accounts from being recreated if later deleted and removes the temporary
+password from the service environment. The command never resets an existing demo
+account's password. Use demo accounts and records only in an isolated demo
+database, not alongside real inventory.
+
 ### Manual web-service deployment
 
 Use these settings if you do not use the Blueprint:
@@ -150,7 +172,7 @@ Use these settings if you do not use the Blueprint:
 | Runtime | Python |
 | Plan | Free |
 | Build command | `pip install -r requirements.txt && python manage.py collectstatic --noinput` |
-| Start command | `python manage.py migrate --noinput && python manage.py bootstrap_admin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile -` |
+| Start command | `python manage.py migrate --noinput && python manage.py bootstrap_admin && python manage.py seed_demo_data --enable-if-env SEED_DEMO_DATA --password-env DEMO_PASSWORD && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile -` |
 | Health check | `/health/` |
 
 Set `PYTHON_VERSION=3.12.8`, `DEBUG=False`, `DATABASE_URL`, `SECRET_KEY` (a long

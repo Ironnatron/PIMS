@@ -358,3 +358,49 @@ class InventoryTests(TestCase):
             get_user_model().objects.filter(username__startswith="demo_operator_").exists()
         )
         self.assertFalse(Product.objects.filter(sku__startswith="DEMO-").exists())
+
+    @patch(
+        "inventory.management.commands.seed_demo_data.getpass.getpass",
+        side_effect=AssertionError("Deployment seeding must not prompt."),
+    )
+    def test_demo_seed_can_run_noninteractively_with_environment_password(self, prompt):
+        with patch.dict("os.environ", {
+            "SEED_DEMO_DATA": "true",
+            "DEMO_PASSWORD": "Deployment-demo-password!682",
+        }):
+            output = StringIO()
+            call_command(
+                "seed_demo_data",
+                enable_if_env="SEED_DEMO_DATA",
+                password_env="DEMO_PASSWORD",
+                stdout=output,
+            )
+
+        User = get_user_model()
+        demo_users = list(User.objects.filter(username__startswith="demo_operator_"))
+        self.assertEqual(len(demo_users), 2)
+        self.assertTrue(all(
+            user.check_password("Deployment-demo-password!682") for user in demo_users
+        ))
+        self.assertEqual(Product.objects.filter(sku__startswith="DEMO-").count(), 4)
+        self.assertIn("4 products and 4 batches created", output.getvalue())
+
+    @patch(
+        "inventory.management.commands.seed_demo_data.getpass.getpass",
+        side_effect=AssertionError("Disabled deployment seeding must not prompt."),
+    )
+    def test_demo_seed_is_disabled_without_deployment_opt_in(self, prompt):
+        with patch.dict("os.environ", {"SEED_DEMO_DATA": "", "DEMO_PASSWORD": ""}):
+            output = StringIO()
+            call_command(
+                "seed_demo_data",
+                enable_if_env="SEED_DEMO_DATA",
+                password_env="DEMO_PASSWORD",
+                stdout=output,
+            )
+
+        self.assertIn("Demo seeding skipped", output.getvalue())
+        self.assertFalse(
+            get_user_model().objects.filter(username__startswith="demo_operator_").exists()
+        )
+        self.assertFalse(Product.objects.filter(sku__startswith="DEMO-").exists())

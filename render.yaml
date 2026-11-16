@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: python manage.py migrate --noinput && python manage.py bootstrap_admin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile -
+    startCommand: python manage.py migrate --noinput && python manage.py bootstrap_admin && python manage.py seed_demo_data --enable-if-env SEED_DEMO_DATA --password-env DEMO_PASSWORD && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile -
     healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION

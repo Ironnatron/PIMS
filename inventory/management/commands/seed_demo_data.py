@@ -1,4 +1,5 @@
 import getpass
+import os
 import sys
 from datetime import timedelta
 
@@ -132,7 +133,26 @@ class Command(BaseCommand):
         },
     ]
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--enable-if-env",
+            metavar="NAME",
+            help="Run only when the named environment variable is set to true.",
+        )
+        parser.add_argument(
+            "--password-env",
+            metavar="NAME",
+            help="Read a new demo account password from the named environment variable.",
+        )
+
     def handle(self, *args, **options):
+        enable_env = options.get("enable_if_env")
+        if enable_env and os.environ.get(enable_env, "").lower() not in {
+            "1", "true", "yes", "on",
+        }:
+            self.stdout.write("Demo seeding skipped; the opt-in environment flag is not enabled.")
+            return
+
         User = get_user_model()
         existing_users = {
             user.username: user
@@ -151,7 +171,18 @@ class Command(BaseCommand):
                     "staff account. It was not changed; resolve the username conflict first."
                 )
 
-        password = self._prompt_password(User, missing_specs) if missing_specs else None
+        password = None
+        if missing_specs:
+            password_env = options.get("password_env")
+            if password_env:
+                password = os.environ.get(password_env, "")
+                if not password:
+                    raise CommandError(
+                        f"Set {password_env} to a password before enabling demo seeding."
+                    )
+                self._validate_password(User, missing_specs, password)
+            else:
+                password = self._prompt_password(User, missing_specs)
 
         created = {"users": 0, "suppliers": 0, "products": 0, "batches": 0}
         with transaction.atomic():
@@ -229,7 +260,7 @@ class Command(BaseCommand):
         )
         if missing_specs:
             self.stdout.write(
-                "The new demo accounts share the password entered at the prompts. "
+                "The newly created demo accounts share the supplied password. "
                 "Both are active staff accounts with full inventory access, not admin access."
             )
         else:
@@ -257,6 +288,9 @@ class Command(BaseCommand):
         if password != confirmation:
             raise CommandError("The passwords did not match; no records were created.")
 
+        return self._validate_password(User, missing_specs, password)
+
+    def _validate_password(self, User, missing_specs, password):
         errors = []
         for spec in missing_specs:
             candidate = User(
